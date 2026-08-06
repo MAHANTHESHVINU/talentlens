@@ -1,44 +1,7 @@
-Python
-Java
-C++
-JavaScript
-TypeScript
-React
-Angular
-Vue
-Node.js
-Express
-FastAPI
-Django
-Flask
-Spring Boot
-SQL
-MySQL
-PostgreSQL
-MongoDB
-Redis
-Docker
-Kubernetes
-Git
-GitHub
-Linux
-AWS
-Azure
-GCP
-Machine Learning
-Deep Learning
-TensorFlow
-PyTorch
-Scikit-learn
-Pandas
-NumPy
-LangChain
-LangGraph
-OpenAI
-RAG
-LLMs
-NLP
-Computer Vision
-Power BI
-Tableau
-Excel
+Communication Skills
+Javascript
+Css
+Typescript
+Html5
+Node.Js
+Apis

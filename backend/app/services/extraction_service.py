@@ -8,21 +8,36 @@ class ExtractionService:
 
         skills_path = Path("app/data/skills.txt")
 
-        self.skills = {
+        self.skills = [
             skill.strip().lower()
-            for skill in skills_path.read_text().splitlines()
+            for skill in skills_path.read_text(
+                encoding="utf-8"
+            ).splitlines()
             if skill.strip()
-        }
+        ]
 
     def extract(self, text: str):
 
         lower = text.lower()
 
-        found = sorted([
-            skill
-            for skill in self.skills
-            if skill in lower
-        ])
+        found = []
+
+        for skill in self.skills:
+
+            # Normalize
+            normalized_skill = (
+                skill.replace(".", "")
+                     .replace("-", " ")
+                     .strip()
+            )
+
+            normalized_text = (
+                lower.replace(".", "")
+                     .replace("-", " ")
+            )
+
+            if normalized_skill in normalized_text:
+                found.append(skill)
 
         email = self.extract_email(text)
         phone = self.extract_phone(text)
@@ -30,7 +45,7 @@ class ExtractionService:
         return {
             "email": email,
             "phone": phone,
-            "skills": found
+            "skills": sorted(list(set(found)))
         }
 
     @staticmethod

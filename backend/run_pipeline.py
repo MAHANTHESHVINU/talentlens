@@ -1,3 +1,7 @@
+import logging
+
+logging.getLogger("pdfminer").setLevel(logging.ERROR)
+logging.getLogger("pdfplumber").setLevel(logging.ERROR)
 from app.services.resume_service import ResumeService
 from app.services.jd_service import JDService
 from app.services.extraction_service import ExtractionService
@@ -24,12 +28,19 @@ def main():
         return
 
     jd_info = extractor.extract(job_description)
+    print("\nJD Skills Found:")
+    print(jd_info["skills"])
 
     print("✅ Job Description Loaded")
 
     print("\nLoading Resumes...")
 
     resumes = ResumeService.load_resumes()
+    for resume in resumes:
+        print("\n" + "=" * 70)
+        print(resume["filename"])
+        print("=" * 70)
+        print(resume["text"][:2000])
 
     print(f"✅ {len(resumes)} Resume(s) Loaded")
 

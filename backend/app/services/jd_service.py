@@ -7,12 +7,20 @@ class JDService:
 
     JD_FOLDER = Path("uploads/job_descriptions")
 
+    SUPPORTED_EXTENSIONS = {".txt", ".pdf", ".docx"}
+
     @classmethod
     def load_job_description(cls):
 
-        files = list(cls.JD_FOLDER.glob("*"))
-
-        if not files:
+        if not cls.JD_FOLDER.exists():
             return None
 
-        return JDParser.parse(str(files[0]))
+        for file in cls.JD_FOLDER.iterdir():
+
+            if (
+                file.is_file()
+                and file.suffix.lower() in cls.SUPPORTED_EXTENSIONS
+            ):
+                return JDParser.parse(str(file))
+
+        return None
