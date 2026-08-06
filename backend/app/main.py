@@ -21,6 +21,9 @@ def startup():
 @app.get("/")
 def root():
     return {
-        "status": "success",
-        "message": f"{settings.APP_NAME} API is running 🚀",
+        "project": "TalentLens AI",
+        "version": "1.0.0",
+        "status": "Running",
+        "api_docs": "/docs",
+        "analysis_endpoint": "/analysis/"
     }

@@ -8,4 +8,5 @@ def health():
     return {
         "status": "healthy",
         "service": "TalentLens AI",
+        "version": "1.0.0"
     }
