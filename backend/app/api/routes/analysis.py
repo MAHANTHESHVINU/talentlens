@@ -1,9 +1,16 @@
 from fastapi import APIRouter
 
+from app.services.resume_service import ResumeService
+
 router = APIRouter()
 
-@router.post("/")
+
+@router.get("/")
 def analyze():
+
+    resumes = ResumeService.load_resumes()
+
     return {
-        "message": "Analysis endpoint working"
+        "total_resumes": len(resumes),
+        "resumes": resumes,
     }
