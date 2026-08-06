@@ -1,0 +1,25 @@
+Software Engineer
+
+Required Skills
+
+Python
+FastAPI
+SQL
+Docker
+Git
+REST API
+Machine Learning
+
+Experience
+
+2+ years
+
+Education
+
+Bachelor's Degree
+
+Responsibilities
+
+Develop REST APIs
+Build scalable backend systems
+Deploy applications using Docker
