@@ -1,0 +1,16 @@
+fastapi
+uvicorn[standard]
+python-dotenv
+python-multipart
+pydantic-settings
+pdfplumber
+PyPDF2
+python-docx
+sentence-transformers
+scikit-learn
+spacy
+rapidfuzz
+pandas
+numpy
+sqlalchemy
+openai
