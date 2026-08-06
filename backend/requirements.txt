@@ -14,3 +14,7 @@ pandas
 numpy
 sqlalchemy
 openai
+pdfplumber
+python-docx
+PyPDF2
+python-multipart
