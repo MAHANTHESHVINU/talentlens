@@ -187,7 +187,8 @@ tbody tr:not(.empty-row):hover { background: #222830; }
 .detail-button { padding: 5px 7px; border: 1px solid #414a54; border-radius: 5px; background: transparent; color: #bbc4ce; font-size: 8px; cursor: pointer; white-space: nowrap; }
 .detail-button:hover { border-color: #75867d; background: #29312d; }
 .empty-row td { height: 65px; color: #89939f; text-align: center; }
-.footer-note { margin-top: 12px; color: #78828e; font-size: 8px; text-align: right; }
+.footer-note { display: flex; justify-content: space-between; gap: 12px; margin-top: 12px; color: #78828e; font-size: 8px; }
+.footer-note a { color: inherit; text-decoration: underline; text-underline-offset: 3px; }
 
 .modal-backdrop { position: fixed; z-index: 20; inset: 0; display: grid; place-items: center; padding: 18px; background: rgba(0,0,0,.68); }
 .candidate-modal { position: relative; width: min(100%, 540px); max-height: 85vh; overflow: auto; padding: 22px; border: 1px solid #414953; border-radius: 10px; background: #20262e; box-shadow: 0 18px 55px rgba(0,0,0,.4); }
