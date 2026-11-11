@@ -250,7 +250,7 @@ curl -X POST "http://127.0.0.1:8000/analysis/" \
   -F "resumes=@resume2.docx"
 ```
 
-With authentication disabled (the default for local development), you can omit `job_description` or `resumes` to use files already present in the backend upload folders. With authentication enabled, both must be uploaded for each screening and are not retained on the server.
+With local persistence enabled, you can omit `job_description` or `resumes` to use files already present in the backend upload folders. When persistence is disabled, both must be uploaded for each screening and are not retained on the server.
 
 The `POST /upload/resumes` endpoint accepts a multipart `files` field. `GET /analysis/` analyzes files already on disk in local development. `GET /health/` checks API health.
 
@@ -264,19 +264,9 @@ python run_pipeline.py
 
 ### Deployment notes
 
-The repository includes a Render Blueprint in `render.yaml`, which deploys the FastAPI application and dashboard together on one HTTPS origin:
+The Render Blueprint in `render.yaml` deploys the FastAPI application and dashboard together on one HTTPS origin, without a sign-in screen. `AUTH_REQUIRED=false` makes the app and analysis API public. `PERSIST_SCREENING_DATA=false` ensures uploaded JDs and resumes are parsed from temporary files and not saved to shared upload or report storage. Folder-based analysis is disabled; upload a JD and at least one resume for every screening. Upload limits are 10 MB per file and 25 resumes per screening.
 
-1. Push the repository to GitHub and create a Render Blueprint deployment from it.
-2. Register OAuth web applications with Google and Microsoft. In the Microsoft app registration, allow accounts in any organizational directory and personal Microsoft accounts. Add the deployed service callback URLs as web redirect URIs:
-   - `https://<your-render-host>/auth/callback/google`
-   - `https://<your-render-host>/auth/callback/microsoft`
-3. Set `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `MICROSOFT_CLIENT_ID`, and `MICROSOFT_CLIENT_SECRET` in the Render service environment. Keep client secrets private; never commit them.
-4. Confirm `AUTH_REQUIRED=true` and `SESSION_COOKIE_SECURE=true`. The Blueprint generates `SESSION_SECRET`.
-5. Redeploy and open the Render service URL. Sign-in is available to any Google or Microsoft account.
-
-The service can start before provider credentials are configured, but sign-in remains unavailable until they are added. With authentication enabled, analysis and resume-upload endpoints require a signed-in session. Each uploaded JD and resume is parsed from a temporary file and removed after processing; the generated report is returned in the response and is not written to shared report storage. Folder-based analysis is disabled. Upload limits are 10 MB per file and 25 resumes per screening.
-
-Do not make the API publicly usable with `AUTH_REQUIRED=false`. For other hosting providers, serve the frontend and API from the same HTTPS origin where possible. If they use different origins, set `API_BASE` in `frontend/app.js` and set `FRONTEND_ORIGINS` on the API to the exact frontend origin.
+Because there is no sign-in, anyone who can reach the site can submit files and use the screening service. Do not upload confidential resumes unless you are comfortable with that public access model. For other hosting providers, serve the frontend and API from the same HTTPS origin where possible. If they use different origins, set `API_BASE` in `frontend/app.js` and set `FRONTEND_ORIGINS` on the API to the exact frontend origin.
 
 ---
 

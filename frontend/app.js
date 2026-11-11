@@ -6,6 +6,7 @@ const allowedResumeExtensions = new Set(["pdf", "docx", "txt"]);
 let currentResults = [];
 let lastFocusedElement = null;
 let authRequired = false;
+let persistScreeningData = true;
 const scoreChart = createScoreChart();
 const skillChart = createSkillChart();
 
@@ -56,6 +57,7 @@ async function initializeAuthentication() {
   if (!response.ok) throw new Error("Unable to check sign-in status.");
   const config = await response.json();
   authRequired = Boolean(config.auth_required);
+  persistScreeningData = config.persist_screening_data !== false;
 
   if (config.auth_required && !config.user) {
     showAuthGate(config.providers || []);
@@ -74,8 +76,8 @@ async function initializeAuthentication() {
     signedInUser.hidden = true;
     signOutButton.hidden = true;
   }
-  document.getElementById("loadDataButton").hidden = authRequired;
-  if (authRequired) {
+  document.getElementById("loadDataButton").hidden = authRequired || !persistScreeningData;
+  if (authRequired || !persistScreeningData) {
     renderDashboard({ resumes: [] });
     setNotice(
       "For privacy, uploaded resumes are processed for this screening and are not saved to the server.",
@@ -601,7 +603,7 @@ document.addEventListener("DOMContentLoaded", () => {
   bindFileDropzone("resumeDropzone", "resumeInput");
   initializeAuthentication()
     .then((authenticated) => {
-      if (authenticated && !authRequired) loadAnalysisFromBackend();
+      if (authenticated && !authRequired && persistScreeningData) loadAnalysisFromBackend();
     })
     .catch((error) => {
       document.getElementById("appShell").hidden = false;

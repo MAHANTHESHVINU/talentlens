@@ -2,7 +2,11 @@ from pathlib import Path
 
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
 
-from app.api.routes.auth import AUTH_REQUIRED, require_authenticated_user
+from app.api.routes.auth import (
+    AUTH_REQUIRED,
+    PERSIST_SCREENING_DATA,
+    require_authenticated_user,
+)
 from app.parsers.jd_parser import JDParser
 from app.parsers.resume_parser import ResumeParser
 from app.services.resume_service import ResumeService
@@ -88,7 +92,7 @@ def _build_analysis_response(
 
 @router.get("/")
 def analyze(user: dict = Depends(require_authenticated_user)):
-    if AUTH_REQUIRED:
+    if AUTH_REQUIRED or not PERSIST_SCREENING_DATA:
         raise HTTPException(
             status_code=403,
             detail="Folder-based analysis is disabled. Upload files for each screening.",
@@ -112,18 +116,20 @@ async def analyze_uploaded_files(
     resumes: list[UploadFile] = File(default_factory=list),
     user: dict = Depends(require_authenticated_user),
 ):
+    persist_screening_data = PERSIST_SCREENING_DATA and not AUTH_REQUIRED
+
     if job_description is not None:
         filename, content, job_text = await parse_uploaded_file(
             job_description,
             JDParser.parse,
             JDService.SUPPORTED_EXTENSIONS,
         )
-        if not AUTH_REQUIRED:
+        if persist_screening_data:
             jd_dir = JDService.JD_FOLDER
             jd_dir.mkdir(parents=True, exist_ok=True)
             (jd_dir / filename).write_bytes(content)
     else:
-        if AUTH_REQUIRED:
+        if AUTH_REQUIRED or not PERSIST_SCREENING_DATA:
             raise HTTPException(
                 status_code=400,
                 detail="Upload a job description for this screening.",
@@ -146,7 +152,7 @@ async def analyze_uploaded_files(
             )
 
         resume_dir = ResumeService.RESUME_FOLDER
-        if not AUTH_REQUIRED:
+        if persist_screening_data:
             resume_dir.mkdir(parents=True, exist_ok=True)
 
         for resume_file in resumes:
@@ -155,7 +161,7 @@ async def analyze_uploaded_files(
                 ResumeParser.parse,
                 {".pdf", ".docx", ".txt"},
             )
-            if not AUTH_REQUIRED:
+            if persist_screening_data:
                 (resume_dir / filename).write_bytes(content)
 
             uploaded_resumes.append({
@@ -164,7 +170,7 @@ async def analyze_uploaded_files(
                 "characters": len(resume_text),
             })
     else:
-        if AUTH_REQUIRED:
+        if AUTH_REQUIRED or not PERSIST_SCREENING_DATA:
             raise HTTPException(
                 status_code=400,
                 detail="Upload at least one resume for this screening.",
@@ -180,5 +186,5 @@ async def analyze_uploaded_files(
     return _build_analysis_response(
         job_text,
         uploaded_resumes,
-        persist_reports=not AUTH_REQUIRED,
+        persist_reports=persist_screening_data,
     )

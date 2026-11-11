@@ -8,16 +8,6 @@ services:
     healthCheckPath: /health/
     envVars:
       - key: AUTH_REQUIRED
-        value: "true"
-      - key: SESSION_COOKIE_SECURE
-        value: "true"
-      - key: SESSION_SECRET
-        generateValue: true
-      - key: GOOGLE_CLIENT_ID
-        sync: false
-      - key: GOOGLE_CLIENT_SECRET
-        sync: false
-      - key: MICROSOFT_CLIENT_ID
-        sync: false
-      - key: MICROSOFT_CLIENT_SECRET
-        sync: false
+        value: "false"
+      - key: PERSIST_SCREENING_DATA
+        value: "false"

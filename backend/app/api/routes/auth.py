@@ -8,6 +8,9 @@ router = APIRouter()
 oauth = OAuth()
 
 AUTH_REQUIRED = os.getenv("AUTH_REQUIRED", "false").strip().lower() == "true"
+PERSIST_SCREENING_DATA = (
+    os.getenv("PERSIST_SCREENING_DATA", "true").strip().lower() == "true"
+)
 SESSION_SECRET = os.getenv("SESSION_SECRET", "")
 SESSION_COOKIE_SECURE = os.getenv(
     "SESSION_COOKIE_SECURE",
@@ -60,6 +63,7 @@ def auth_config(request: Request):
     user = request.session.get("user") if AUTH_REQUIRED else None
     return {
         "auth_required": AUTH_REQUIRED,
+        "persist_screening_data": PERSIST_SCREENING_DATA and not AUTH_REQUIRED,
         "user": user,
         "providers": [
             provider
