@@ -1,6 +1,6 @@
 # 🤖 TalentLens AI – Intelligent Resume Screening Agent
 
-> An AI-powered Resume Screening Agent built with **FastAPI** that automatically parses resumes, extracts candidate information, compares resumes with a Job Description (JD), ranks candidates, and generates recruiter-friendly reports.
+> A resume-screening application with a **FastAPI** backend and a browser-based recruiter dashboard. Upload a job description and resumes, compare extracted skills, review ranked results, and export reports.
 
 ---
 
@@ -8,9 +8,9 @@
 
 TalentLens AI simplifies the recruitment process by automatically screening resumes against a given Job Description.
 
-The system extracts candidate details, identifies technical skills, compares them with the required job skills, ranks candidates based on relevance, and generates reports for recruiters.
+The system extracts candidate details and skills, compares resumes with the role requirements, ranks candidates, and generates JSON and CSV reports. The dashboard supports PDF, DOCX, and TXT resumes and TXT, PDF, and DOCX job descriptions.
 
-The project is designed with a modular backend architecture and can be executed through both a REST API and a Command Line Interface (CLI).
+The project can be used through the recruiter dashboard, REST API, or command-line pipeline (CLI).
 
 ---
 
@@ -31,6 +31,10 @@ The project is designed with a modular backend architecture and can be executed 
 - ⚡ FastAPI REST APIs
 - 💻 CLI Pipeline Execution
 - 📚 Interactive Swagger Documentation
+- 📊 Recruiter dashboard with candidate rankings and match charts
+- 🌓 Light and dark themes
+- 👤 Candidate detail modal with matched and missing skills
+- ⬆️ Multi-resume upload with upload and analysis progress
 
 ---
 
@@ -84,6 +88,7 @@ TalentLens/
 │   │   ├── api/
 │   │   │   ├── router.py
 │   │   │   └── routes/
+│   │   │       └── auth.py
 │   │   │
 │   │   ├── core/
 │   │   ├── data/
@@ -115,7 +120,12 @@ TalentLens/
 │   ├── README.md
 │   └── .gitignore
 │
-└── frontend/ (Optional)
+├── frontend/
+│   ├── index.html
+│   ├── styles.css
+│   └── app.js
+├── render.yaml
+└── README.md
 ```
 
 ---
@@ -186,52 +196,87 @@ pip install -r requirements.txt
 
 ---
 
-# 📥 Sample Input
+# 📥 Sample Input and File Formats
 
-Place the Job Description inside
+For CLI or folder-based API analysis, place a job description inside
 
 ```text
-uploads/job_descriptions/
+backend/uploads/job_descriptions/
 ```
 
-Example
+Supported job description formats: `.txt`, `.pdf`, and `.docx`.
 
 ```text
-uploads/job_descriptions/software_engineer.txt
+backend/uploads/job_descriptions/software_engineer.txt
 ```
 
-Place resumes inside
+Place resumes inside `backend/uploads/resumes/`. Supported resume formats are `.pdf`, `.docx`, and `.txt`.
 
 ```text
-uploads/resumes/
-```
-
-Example
-
-```text
-uploads/resumes/resume1.pdf
-uploads/resumes/resume2.pdf
+backend/uploads/resumes/resume1.pdf
+backend/uploads/resumes/resume2.docx
 ```
 
 ---
 
-# ▶️ Running the REST API
+# ▶️ Running the REST API and Dashboard
+
+From the repository root, install the backend dependencies and start the application:
 
 ```bash
-python -m uvicorn app.main:app --reload
+cd backend
+pip install -r requirements.txt
+python -m uvicorn app.main:app --reload --host 127.0.0.1 --port 8000
 ```
 
-Server
+FastAPI serves the dashboard and API from one origin:
 
-```
-http://127.0.0.1:8000
+- Dashboard: `http://127.0.0.1:8000/`
+- API documentation: `http://127.0.0.1:8000/docs`
+- Health check: `http://127.0.0.1:8000/health/`
+
+From the dashboard, choose one JD and one or more resumes, then select **Screen resumes**. The result view includes candidate counts, average match, highest match, skill coverage, ranked candidates, and candidate details. Use **Refresh results** to run analysis on the files already in the backend upload folders.
+
+The dashboard also provides a light/dark theme toggle; the selection is saved in the browser.
+
+### Analyze files through the API
+
+The multipart endpoint accepts a JD and one or more resumes:
+
+```bash
+curl -X POST "http://127.0.0.1:8000/analysis/" \
+  -F "job_description=@job_description.txt" \
+  -F "resumes=@resume1.pdf" \
+  -F "resumes=@resume2.docx"
 ```
 
-Swagger Documentation
+With authentication disabled (the default for local development), you can omit `job_description` or `resumes` to use files already present in the backend upload folders. With authentication enabled, both must be uploaded for each screening and are not retained on the server.
 
+The `POST /upload/resumes` endpoint accepts a multipart `files` field. `GET /analysis/` analyzes files already on disk in local development. `GET /health/` checks API health.
+
+### CLI
+
+Run the pipeline from `backend/` after adding the JD and resumes to the folders above:
+
+```bash
+python run_pipeline.py
 ```
-http://127.0.0.1:8000/docs
-```
+
+### Deployment notes
+
+The repository includes a Render Blueprint in `render.yaml`, which deploys the FastAPI application and dashboard together on one HTTPS origin:
+
+1. Push the repository to GitHub and create a Render Blueprint deployment from it.
+2. Register OAuth web applications with Google and Microsoft. In the Microsoft app registration, allow accounts in any organizational directory and personal Microsoft accounts. Add the deployed service callback URLs as web redirect URIs:
+   - `https://<your-render-host>/auth/callback/google`
+   - `https://<your-render-host>/auth/callback/microsoft`
+3. Set `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `MICROSOFT_CLIENT_ID`, and `MICROSOFT_CLIENT_SECRET` in the Render service environment. Keep client secrets private; never commit them.
+4. Confirm `AUTH_REQUIRED=true` and `SESSION_COOKIE_SECURE=true`. The Blueprint generates `SESSION_SECRET`.
+5. Redeploy and open the Render service URL. Sign-in is available to any Google or Microsoft account.
+
+The service can start before provider credentials are configured, but sign-in remains unavailable until they are added. With authentication enabled, analysis and resume-upload endpoints require a signed-in session. Each uploaded JD and resume is parsed from a temporary file and removed after processing; the generated report is returned in the response and is not written to shared report storage. Folder-based analysis is disabled. Upload limits are 10 MB per file and 25 resumes per screening.
+
+Do not make the API publicly usable with `AUTH_REQUIRED=false`. For other hosting providers, serve the frontend and API from the same HTTPS origin where possible. If they use different origins, set `API_BASE` in `frontend/app.js` and set `FRONTEND_ORIGINS` on the API to the exact frontend origin.
 
 ---
 
@@ -293,10 +338,17 @@ reports/final_report.csv
 
 | Method | Endpoint | Description |
 |----------|----------|-------------|
-| GET | `/` | Project Information |
+| GET | `/` | Dashboard |
+| GET | `/api` | Project Information |
 | GET | `/health/` | Health Check |
-| POST | `/upload/resumes` | Upload Resume Files |
-| POST | `/analysis/` | Analyze Candidates |
+| GET | `/auth/config` | Sign-in configuration and current user |
+| GET | `/auth/login/google` | Start Google sign-in |
+| GET | `/auth/login/microsoft` | Start Microsoft sign-in |
+| GET | `/auth/callback/{provider}` | OAuth callback |
+| POST | `/auth/logout` | Sign out |
+| POST | `/upload/resumes` | Upload resume files |
+| GET | `/analysis/` | Analyze files from backend upload folders |
+| POST | `/analysis/` | Analyze an uploaded JD and resume files (multipart) |
 | GET | `/results/` | View Results |
 
 ---
@@ -385,15 +437,14 @@ This allowed delivery of a complete, runnable backend within the challenge timef
 
 # 🔮 Future Improvements
 
-With additional development time, the following enhancements are planned:
+Potential future improvements:
 
 - Semantic resume matching using Sentence Transformers
 - LLM-based candidate evaluation
 - OCR support for scanned resumes
 - Resume section classification
-- Recruiter dashboard (React)
 - Authentication and role-based access
-- Docker containerization
+- Production deployment configuration
 - Database integration
 - Cloud deployment (AWS/Azure/GCP)
 

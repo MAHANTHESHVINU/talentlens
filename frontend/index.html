@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#0b1018" />
+    <title>TalentLens | Hiring workspace</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="styles.css" />
+    <script defer src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script defer src="app.js"></script>
+  </head>
+  <body>
+    <main class="auth-gate" id="authGate" hidden>
+      <section class="auth-card">
+        <div class="brand-badge auth-mark" aria-hidden="true">TL</div>
+        <p class="eyebrow">TALENTLENS</p>
+        <h1>Sign in to continue</h1>
+        <p class="auth-copy">Use your work or personal identity account to access resume screening.</p>
+        <div class="auth-providers" id="authProviders"></div>
+        <p class="auth-error" id="authError" role="alert" hidden></p>
+      </section>
+    </main>
+
+    <div class="app-shell" id="appShell" hidden>
+      <aside class="sidebar">
+        <div class="brand">
+          <div class="brand-badge" aria-hidden="true">TL</div>
+          <div>
+            <h1>TalentLens</h1>
+          </div>
+        </div>
+
+        <nav class="nav">
+          <a class="nav-item active" href="#overview">Overview</a>
+          <a class="nav-item" href="#candidates">Candidates</a>
+          <a class="nav-item" href="#insights">Match breakdown</a>
+        </nav>
+      </aside>
+
+      <main class="main-panel">
+        <header class="topbar" id="overview">
+          <div class="page-title">
+            <p class="eyebrow">RESUME SCREENING</p>
+            <h2>Candidate review <span id="lastUpdated">No results loaded</span></h2>
+          </div>
+          <div class="topbar-actions">
+            <span class="signed-in-user" id="signedInUser" hidden></span>
+            <button class="secondary-button" id="signOutButton" type="button" hidden>Sign out</button>
+            <button class="secondary-button theme-toggle" id="themeToggle" type="button" aria-pressed="false">Use light theme</button>
+            <button class="secondary-button" id="loadDataButton" type="button">Refresh results</button>
+          </div>
+        </header>
+
+        <section class="upload-card card">
+          <div class="upload-intro">
+            <div>
+              <h3>Screen a group of resumes</h3>
+              <p class="subcopy">Choose a job description and the resumes you want to compare.</p>
+            </div>
+          </div>
+
+          <form id="analysisForm" class="analysis-form">
+            <label class="field">
+              <span class="field-title"><b>Job description</b><small>TXT, PDF or DOCX</small></span>
+              <span class="file-picker" id="jdDropzone">
+                <span class="file-icon" aria-hidden="true">TXT</span>
+                <span class="file-copy"><strong id="jdFileName">Choose a role description</strong><small>Click to browse files</small></span>
+                <span class="file-action">Browse</span>
+                <input type="file" id="jdInput" name="job_description" accept=".txt,.pdf,.docx" />
+              </span>
+            </label>
+
+            <label class="field">
+              <span class="field-title"><b>Resumes</b><small>PDF, DOCX or TXT · select multiple</small></span>
+              <span class="file-picker" id="resumeDropzone">
+                <span class="file-icon resume-icon" aria-hidden="true">PDF</span>
+                <span class="file-copy"><strong id="resumeFileName">Choose candidate resumes</strong><small>Click to browse or select multiple</small></span>
+                <span class="file-action">Browse</span>
+                <input type="file" id="resumeInput" name="resumes" multiple accept=".pdf,.docx,.txt" />
+              </span>
+            </label>
+
+            <button type="submit" class="primary-button analyze-button" id="analyzeButton">
+              <span>Screen resumes</span>
+            </button>
+          </form>
+
+          <div class="progress-panel" id="progressPanel" hidden aria-live="polite">
+            <div class="progress-heading"><strong id="progressTitle">Preparing files</strong><span id="progressPercent">0%</span></div>
+            <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+            <p id="progressMessage">Files are being sent to the screening service.</p>
+          </div>
+          <div class="notice" id="notice" hidden role="status"></div>
+        </section>
+
+        <section class="section-heading">
+          <div><p class="eyebrow">CURRENT RESULTS</p><h3>Summary</h3></div>
+          <span class="data-state" id="dataState"><span class="state-dot"></span> No results</span>
+        </section>
+
+        <section class="stats-grid" id="statsGrid">
+          <article class="stat-card card accent-blue">
+            <div class="stat-top"><p class="label">Candidates</p></div>
+            <h3 id="totalCandidates">—</h3><p class="stat-foot" id="candidateFoot">No resumes screened</p>
+          </article>
+          <article class="stat-card card accent-green">
+            <div class="stat-top"><p class="label">Average match</p></div>
+            <h3 id="avgScore">—</h3><p class="stat-foot">Across this screening batch</p>
+          </article>
+          <article class="stat-card card accent-purple">
+            <div class="stat-top"><p class="label">Highest match</p></div>
+            <h3 class="stat-name" id="topCandidateName">—</h3><p class="stat-foot" id="topCandidateFoot">Top candidate</p>
+          </article>
+          <article class="stat-card card accent-gold">
+            <div class="stat-top"><p class="label">Matched skills</p></div>
+            <h3 id="matchedSkillsCount">—</h3><p class="stat-foot">Across all candidates</p>
+          </article>
+        </section>
+
+        <section class="charts-grid" id="insights">
+          <article class="card chart-card">
+            <div class="card-header compact">
+              <div><h3>Match scores</h3></div>
+              <span class="chart-caption">Out of 100</span>
+            </div>
+            <div class="chart-empty" id="scoreEmpty">Results will appear after analysis.</div>
+            <canvas id="scoreChart" aria-label="Candidate match scores" role="img"></canvas>
+          </article>
+
+          <article class="card chart-card">
+            <div class="card-header compact">
+              <div><h3>Skill coverage</h3></div>
+              <span class="chart-caption" id="skillCaption">No skills analyzed</span>
+            </div>
+            <div class="chart-empty" id="skillEmpty">Skill coverage appears after analysis.</div>
+            <canvas id="skillChart" aria-label="Matched and missing skills" role="img"></canvas>
+          </article>
+        </section>
+
+        <section class="card table-card" id="candidates">
+          <div class="card-header table-heading">
+            <div><h3>Candidate results</h3></div>
+            <span class="candidate-count" id="tableCount">0 candidates</span>
+          </div>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>RANK</th>
+                  <th>RESUME</th>
+                  <th>MATCH</th>
+                  <th>MATCHED SKILLS</th>
+                  <th>ASSESSMENT</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody id="resultsTableBody"><tr class="empty-row"><td colspan="6">Results will appear here after screening.</td></tr></tbody>
+            </table>
+          </div>
+        </section>
+        <footer class="footer-note">TalentLens · Resume screening results</footer>
+      </main>
+    </div>
+
+    <div class="modal-backdrop" id="candidateModal" hidden>
+      <section class="candidate-modal" role="dialog" aria-modal="true" aria-labelledby="modalName">
+        <button class="modal-close" id="modalClose" type="button" aria-label="Close candidate details">×</button>
+        <div id="modalContent"></div>
+      </section>
+    </div>
+  </body>
+</html>

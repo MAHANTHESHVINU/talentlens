@@ -6,4 +6,8 @@ python-docx
 pandas
 openpyxl
 pydantic
+pydantic-settings
+authlib
+itsdangerous
+httpx2
 pytest

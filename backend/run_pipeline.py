@@ -24,14 +24,14 @@ def main():
     job_description = JDService.load_job_description()
 
     if not job_description:
-        print("❌ No Job Description found.")
+        print("[ERROR] No Job Description found.")
         return
 
     jd_info = extractor.extract(job_description)
     print("\nJD Skills Found:")
     print(jd_info["skills"])
 
-    print("✅ Job Description Loaded")
+    print("[OK] Job Description Loaded")
 
     print("\nLoading Resumes...")
 
@@ -42,7 +42,7 @@ def main():
         print("=" * 70)
         print(resume["text"][:2000])
 
-    print(f"✅ {len(resumes)} Resume(s) Loaded")
+    print(f"[OK] {len(resumes)} Resume(s) Loaded")
 
     results = []
 
